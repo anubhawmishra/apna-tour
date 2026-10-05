@@ -1,0 +1,436 @@
+// Prisma schema for APNA TOUR
+// Designed for PostgreSQL / SQLite-compatible local dev & production scalability
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  CONTRIBUTOR
+  EDITOR
+  ADMIN
+}
+
+enum PublicationStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum Region {
+  NORTH
+  SOUTH
+  EAST
+  WEST
+  CENTRAL
+  NORTHEAST
+}
+
+enum Season {
+  WINTER
+  SUMMER
+  MONSOON
+  POST_MONSOON
+  ALL_YEAR
+}
+
+enum PriceTier {
+  BUDGET
+  MODERATE
+  PREMIUM
+  LUXURY
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String?
+  image         String?
+  role          Role           @default(USER)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  profile       Profile?
+  savedItems    SavedItem[]
+  itineraries   Itinerary[]
+  submissions   ContributorSubmission[]
+  consents      ConsentRecord[]
+
+  @@index([email])
+}
+
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio         String?
+  hometown    String?
+  avatarUrl   String?
+  preferences Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Author {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  title       String
+  bio         String
+  avatarUrl   String?
+  location    String?
+  stories     Story[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model State {
+  id              String            @id @default(cuid())
+  name            String            @unique
+  slug            String            @unique
+  capital         String
+  region          Region
+  tagline         String
+  overview        String
+  heroImage       String
+  bestTimeToVisit String
+  idealDuration   String
+  peakSeason      Season            @default(WINTER)
+  status          PublicationStatus @default(PUBLISHED)
+  highlights      String[]
+  travelTips      String[]
+  faqs            Json?
+
+  cities          City[]
+  foodSpots       FoodSpot[]
+  experiences     Experience[]
+  stories         Story[]
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([slug])
+  @@index([region])
+}
+
+model City {
+  id              String            @id @default(cuid())
+  name            String
+  slug            String
+  stateId         String
+  state           State             @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  tagline         String
+  overview        String
+  heroImage       String
+  latitude        Float?
+  longitude       Float?
+  bestTime        String
+  idealDays       Int               @default(2)
+  knownFor        String[]
+  status          PublicationStatus @default(PUBLISHED)
+  faqs            Json?
+
+  places          Place[]
+  foodSpots       FoodSpot[]
+  experiences     Experience[]
+  stories         Story[]
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@unique([stateId, slug])
+  @@index([slug])
+  @@index([stateId])
+}
+
+model Place {
+  id              String            @id @default(cuid())
+  name            String
+  slug            String
+  cityId          String
+  city            City              @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  category        String
+  tagline         String
+  description     String
+  heroImage       String
+  galleryImages   String[]
+  timingsVerified String
+  entryFeeNote    String
+  bestTimeOfDay   String
+  durationHours   Float             @default(2.0)
+  accessibility   String?
+  howToReach      String
+  highlights      String[]
+  status          PublicationStatus @default(PUBLISHED)
+  latitude        Float?
+  longitude       Float?
+
+  savedBy         SavedItem[]
+  itineraryItems  ItineraryItem[]
+  images          PlaceImage[]
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@unique([cityId, slug])
+  @@index([slug])
+  @@index([cityId])
+  @@index([category])
+}
+
+model FoodSpot {
+  id              String            @id @default(cuid())
+  name            String
+  slug            String
+  cityId          String
+  city            City              @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  stateId         String
+  state           State             @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  cuisine         String
+  category        String            // Street Food, Heritage Cafe, Iconic Sweets, Regional Thali
+  mustTryDishes   String[]
+  priceTier       PriceTier         @default(MODERATE)
+  heroImage       String
+  description     String
+  neighborhood    String
+  storyNote       String?
+  isVerified      Boolean           @default(true)
+  status          PublicationStatus @default(PUBLISHED)
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([cityId])
+  @@index([category])
+}
+
+model Experience {
+  id              String            @id @default(cuid())
+  title           String
+  slug            String            @unique
+  cityId          String?
+  city            City?             @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  stateId         String
+  state           State             @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  theme           String            // Heritage, Nature, Adventure, Spiritual, Culinary, Wellness
+  summary         String
+  description     String
+  heroImage       String
+  seasonRecommended Season          @default(WINTER)
+  difficulty      String?           // Easy, Moderate, Challenging
+  duration        String
+  tips            String[]
+  status          PublicationStatus @default(PUBLISHED)
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([slug])
+  @@index([theme])
+}
+
+model Story {
+  id              String            @id @default(cuid())
+  title           String
+  slug            String            @unique
+  subtitle        String
+  excerpt         String
+  body            String            // Markdown or structured editorial rich content
+  heroImage       String
+  authorId        String
+  author          Author            @relation(fields: [authorId], references: [id])
+  stateId         String?
+  state           State?            @relation(fields: [stateId], references: [id], onDelete: SetNull)
+  cityId          String?
+  city            City?             @relation(fields: [cityId], references: [id], onDelete: SetNull)
+  category        String
+  readingTimeMin  Int               @default(5)
+  status          PublicationStatus @default(PUBLISHED)
+  tags            String[]
+  publishedAt     DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  savedBy         SavedItem[]
+
+  @@index([slug])
+  @@index([authorId])
+  @@index([category])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+}
+
+model Tag {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  createdAt   DateTime @default(now())
+
+  @@index([slug])
+}
+
+model Itinerary {
+  id          String          @id @default(cuid())
+  title       String
+  slug        String          @unique
+  destination String
+  daysCount   Int
+  summary     String
+  heroImage   String
+  isCurated   Boolean         @default(false)
+  userId      String?
+  user        User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items       ItineraryItem[]
+  status      PublicationStatus @default(PUBLISHED)
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([slug])
+  @@index([isCurated])
+}
+
+model ItineraryItem {
+  id          String    @id @default(cuid())
+  itineraryId String
+  itinerary   Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+  dayNumber   Int
+  timeOfDay   String    // Morning, Afternoon, Evening, Night
+  placeId     String?
+  place       Place?    @relation(fields: [placeId], references: [id], onDelete: SetNull)
+  customTitle String?
+  customNote  String?
+  sortOrder   Int       @default(0)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([itineraryId, dayNumber])
+}
+
+model SavedItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemType  String   // PLACE, STORY, FOOD, ITINERARY
+  placeId   String?
+  place     Place?   @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  storyId   String?
+  story     Story?   @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, itemType, placeId, storyId])
+  @@index([userId])
+}
+
+model NewsletterSubscriber {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  consentGiven Boolean  @default(true)
+  source       String   @default("footer")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  unsubscribedAt DateTime?
+
+  @@index([email])
+}
+
+model ContributorSubmission {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name        String
+  email       String
+  location    String
+  storyIdea   String
+  category    String
+  sampleLink  String?
+  message     String
+  status      String   @default("PENDING") // PENDING, REVIEWED, ACCEPTED, REJECTED
+  createdAt   DateTime @default(now())
+
+  @@index([email])
+  @@index([status])
+}
+
+model PlaceImage {
+  id           String   @id @default(cuid())
+  placeId      String
+  place        Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  url          String
+  thumbnailUrl String?
+  altText      String
+  caption      String
+  perspective  String?
+  source       String
+  sourceUrl    String?
+  license      String
+  creator      String?
+  sortOrder    Int      @default(0)
+  isFeatured   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([placeId])
+  @@index([sortOrder])
+}
+
+model ContactSubmission {
+  id             String   @id @default(cuid())
+  name           String
+  email          String
+  phone          String?
+  subject        String?
+  destination    String?
+  travelDates    String?
+  travellerCount Int?
+  tripType       String?
+  budget         String?
+  message        String
+  consent        Boolean  @default(true)
+  sourcePage     String?
+  status         String   @default("NEW") // NEW, IN_PROGRESS, REPLIED, ARCHIVED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([email])
+  @@index([status])
+  @@index([destination])
+}
+
+model ConsentRecord {
+  id             String   @id @default(cuid())
+  userId         String?
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  anonymousId    String
+  necessary      Boolean  @default(true)
+  analytics      Boolean  @default(false)
+  marketing      Boolean  @default(false)
+  preferences    Boolean  @default(false)
+  ipHash         String?
+  userAgent      String?
+  consentedAt    DateTime @default(now())
+  withdrawnAt    DateTime?
+
+  @@index([anonymousId])
+}

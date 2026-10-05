@@ -1,26 +1,156 @@
 @import "tailwindcss";
 
+@theme {
+  --font-serif: var(--font-serif), Newsreader, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-sans: var(--font-sans), "Plus Jakarta Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Editorial Dark Surface Tiers */
+  --color-dark-950: #111312;
+  --color-dark-900: #141715;
+  --color-dark-850: #171A18;
+  --color-dark-800: #1C201D;
+  --color-dark-750: #20231F;
+  --color-dark-700: #272C26;
+  --color-dark-forest: #19352B;
+  --color-dark-featured: #192D26;
+  --color-dark-footer: #090B0A;
+
+  /* Editorial Warm Cream & Text Tiers */
+  --color-cream-50: #FAF5EB;
+  --color-cream-100: #F3EBDD;
+  --color-cream-200: #E4D9C7;
+  --color-cream-300: #B9B4A8;
+  --color-cream-400: #85867E;
+  --color-cream-500: #656760;
+
+  /* Luxury Earthy Accent Palette */
+  --color-terracotta-500: #C85B35;
+  --color-terracotta-600: #A64724;
+  --color-terracotta-700: #843415;
+  --color-terracotta-400: #DA6A42;
+  --color-saffron-500: #D28A32;
+  --color-saffron-600: #B36F20;
+  --color-brass-500: #C99A52;
+  --color-brass-600: #B98945;
+  --color-brass-700: #9B7032;
+
+  /* Forest Green Tiers */
+  --color-forest-950: #10211A;
+  --color-forest-900: #19352B;
+  --color-forest-800: #1F4235;
+  --color-forest-700: #295746;
+  --color-forest-500: #3D7D66;
+
+  /* Mapped Palette (Ensures complete site-wide consistency with existing utility classes) */
+  --color-sand-50: #20231F;
+  --color-sand-100: #171A18;
+  --color-sand-200: #1C201D;
+  --color-sand-300: #262B25;
+  --color-sand-400: #383F37;
+  --color-charcoal-900: #F3EBDD;
+  --color-charcoal-800: #E4D9C7;
+  --color-charcoal-700: #D0C7B6;
+  --color-charcoal-600: #B9B4A8;
+  --color-charcoal-500: #85867E;
+  --color-charcoal-400: #656760;
+  --color-terracotta-50: #261914;
+  --color-terracotta-100: #382119;
+  --color-forest-50: #13241C;
+  --color-brass-50: #261E14;
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #111312;
+  --foreground: #F3EBDD;
+  --card-bg: #1C201D;
+  --card-border: rgba(255, 255, 255, 0.08);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Editorial selection styling */
+::selection {
+  background-color: #C85B35;
+  color: #FAF5EB;
+}
+
+/* Custom dark editorial scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #111312;
+}
+::-webkit-scrollbar-thumb {
+  background: #272C26;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3B423A;
+}
+
+/* Subtle image reveal and zoom classes */
+.editorial-img-zoom {
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), filter 0.65s ease;
+}
+.group:hover .editorial-img-zoom {
+  transform: scale(1.045);
+}
+
+/* Premium subtle borders */
+.border-editorial {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.border-editorial-subtle {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.border-warm {
+  border-color: rgba(200, 91, 53, 0.25);
+}
+
+.border-brass {
+  border-color: rgba(185, 137, 69, 0.25);
+}
+
+/* Subtle link underline animation */
+.editorial-nav-link {
+  position: relative;
+  transition: color 0.25s ease;
+}
+.editorial-nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0%;
+  height: 1.5px;
+  background-color: #C85B35;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.editorial-nav-link:hover::after {
+  width: 100%;
+}
+
+/* Cinematic filmic grain overlay (CSS generated, high performance) */
+.editorial-dark-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(200, 91, 53, 0.06), transparent 70%);
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .editorial-img-zoom,
+  .group:hover .editorial-img-zoom {
+    transition: none;
+    transform: none;
+  }
 }
